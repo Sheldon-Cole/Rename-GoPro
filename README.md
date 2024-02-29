@@ -1,7 +1,7 @@
 # Rename-GoPro
 This PowerShell script will rename GoPro Hero files from the standard `GX010001.MP4` to `GoPro-001-010.MP4` so that can be properly sorted in order, in the OS of the users choice.
 
-### <span style="color:orange">***This is currently incorrect as the actual naming convention is `GX-01-0001.MP4`. This will be fixed in a future update. So long as the file number does not exceed 4 digits, this is safe to use.***<span/>
+### $\color{orange}{\textsf{This is currently incorrect as the actual naming convention is GX-01-0001.MP4. This will be fixed in a future update. So long as the file number does not exceed 4 digits, this is safe to use.}}$
 
 ### GoPro Naming:
 - `GX`: Video file/encoding designation
