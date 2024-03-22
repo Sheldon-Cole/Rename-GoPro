@@ -20,6 +20,12 @@
 .PARAMETER Path
     Specifies the path where the GoPro files are located.
 
+.PARAMETER [switch]Copy
+    Indicates whether to copy the renamed GoPro files to the destination path.
+
+.PARAMETER [switch]Move
+    Indicates whether to move the renamed GoPro files to the destination path.
+
 .PARAMETER [switch]Recurse
     Indicates whether to search for GoPro files in subfolders.
 
@@ -49,9 +55,10 @@ param (
 
     [Parameter(Mandatory = $true)]
     [string]$Path,
-
+    
+    [switch]$Copy,
+    [switch]$Move,
     [switch]$Recurse,
-
     [switch]$ShowMe
 )
 function Get-GoProFiles {
@@ -70,7 +77,7 @@ function Get-GoProFiles {
 
     # Get matching GoPro video file names with regex matching
     $GoProFileNames | ForEach-Object {
-        if ($_.Name -match 'G[xgXG]\d{6}\.MP4') {
+        if ($_.Name -match 'G[ghxGHX]\d{6}\.MP4') {
             $GoProVideos += [PSCustomObject]@{
                 Name      = $_.Name
                 Directory = $_.Directory
@@ -110,7 +117,7 @@ function Move-GoProLVMTHMFiles {
     )
 
     # Move LRV and THM files to separate folder from other GoPro media
-    $OtherGoProFiles = Get-ChildItem -Path $Path -Include "*.lvm", "*.thm" -Recurse:$Recurse | Select-Object -Property Name, Directory
+    $OtherGoProFiles = Get-ChildItem -Path $Path -Include "*.lrv", "*.thm" -Recurse:$Recurse | Select-Object -Property Name, Directory
 
     if ($OtherGoProFiles.Count -eq 0) {
         Write-Warning "No LRV or THM files found in the path: $Path`n"
@@ -126,7 +133,7 @@ function Move-GoProLVMTHMFiles {
     elseif (!$ShowMe) {
         Write-Host -ForegroundColor Yellow "Moving LRV and THM files to separate folder from other GoPro media..."
 
-        $NewFileDirectory = $DestinationPath + "OtherGoProMedia"
+        $NewFileDirectory = $DestinationPath + "\" + "Other GoPro Media"
     
         $OtherGoProFiles | ForEach-Object {
             $File = $_
@@ -172,7 +179,7 @@ function Move-GoProPictures {
         }
     }
     elseif (!$ShowMe) {
-        $NewFileDirectory = $DestinationPath + "GoPro Pictures" + "\"
+        $NewFileDirectory = $DestinationPath + "\" + "GoPro Pictures"
     
         $GoProPictures | ForEach-Object {
             $File = $_
@@ -208,6 +215,8 @@ function Rename-GoProFiles {
         [Parameter(Mandatory = $true)]
         [string]$Path,
 
+        [switch]$Copy,
+        [switch]$Move,
         [switch]$ShowMe
     )
 
@@ -222,7 +231,7 @@ function Rename-GoProFiles {
         $OldPrefix = $FileName -replace '\d.*$'
         $GoProSequence = $FileName -replace '.MP4' -replace '\D' 
 
-        if ($OldPrefix -match 'GX|GG') {
+        if ($OldPrefix -match 'GG|GH|GX') {
             $NewPrefix = "GoPro-"
 
             if ($GoProSequence.Length -eq 6) {
@@ -260,12 +269,20 @@ function Rename-GoProFiles {
                 New-Item -Path $_ -ItemType Directory
             }
         }
-        $NewGoProVideoNames | ForEach-Object {
-            $OldFile = $_.'Old File Name'
-            $NewFile = $_.'New Directory' + "\" + $_.'New Filename'
-            Move-Item -Path $OldFile -Destination $NewFile
+        if ($Copy -and !$Move) {
+            $NewGoProVideoNames | ForEach-Object {
+                $OldFile = $_.'Old File Name'
+                $NewFile = $_.'New Directory' + "\" + $_.'New Filename'
+                Copy-Item -Path $OldFile -Destination $NewFile
+            }
         }
-        
+        elseif ($Move -and !$Copy) {
+            $NewGoProVideoNames | ForEach-Object {
+                $OldFile = $_.'Old File Name'
+                $NewFile = $_.'New Directory' + "\" + $_.'New Filename'
+                Move-Item -Path $OldFile -Destination $NewFile
+            }
+        }       
     }
     else {
         Write-Host "The man is blue!"
@@ -293,6 +310,10 @@ if ($Path -and !$DestinationPath) {
 else {
     Test-NewPath -Path $DestinationPath
 }
+if ($Copy -and $Move) {
+    Write-Warning "You can't use both the -Copy and -Move switches at the same time. Please use only one switch."
+    return
+}
 
 # First, get the GoPro files. If the -Recurse switch is used, get the GoPro files from all subfolders.
 # This will match any GoPro file name that starts with GX or GG, followed by 6 digits, and ending with .MP4
@@ -313,5 +334,5 @@ if ($GoProPictures -ne $false) {
 
 # Fourth, rename the GoPro videos
 if ($GoProVideos -ne $false) {
-    Rename-GoProFiles -GoProVideos $GoProVideos -Path $Path -DestinationPath $DestinationPath -ShowMe:$ShowMe
+    Rename-GoProFiles -GoProVideos $GoProVideos -Path $Path -DestinationPath $DestinationPath -ShowMe:$ShowMe -Move:$Move -Copy:$Copy
 }
