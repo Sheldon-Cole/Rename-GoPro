@@ -72,3 +72,4 @@ Using the `-Move` switch will move the original files into the destination folde
 - No video group folders \[switch\]
 - Duplication warnings/handling
 - Delete LVM and THM files \[switch\]
+  
