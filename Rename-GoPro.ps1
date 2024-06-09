@@ -1,3 +1,6 @@
+# Created by: Sheldon Cole (Sheldon-Cole)
+# Created Date: 2024-02-25
+
 <#
 .SYNOPSIS
     Rename GoPro files after retrieving from folders, recursively.
@@ -9,8 +12,8 @@
     3. Moves GoPro pictures to a separate folder.
     4. Renames GoPro videos according to a specific naming convention.
         - Videos are renamed to conform to Windows file sorting conventions. The new file name format is "GoPro-<video group>-<sequence>.MP4". 
-        - If a video is GX010203.MP4, it will be renamed to GoPro-203-010.MP4. 203 is the group of the video, and 010 is the sequence of the video. 
-        - 203-020 would be the next video. 203-030 would be the next video, and so on.
+        - If a video is GX010203.MP4, it will be renamed to GoPro-0203-01.MP4. 0203 is the group of the video, and 01 is the sequence of the video. 
+        - 0203-02 would be the next video. 0203-03 would be the next video, and so on.
     5. Moves the renamed GoPro videos to the specified destination path.
         - The videos are moved to a folder named after the video group.
 
@@ -235,8 +238,8 @@ function Rename-GoProFiles {
             $NewPrefix = "GoPro-"
 
             if ($GoProSequence.Length -eq 6) {
-                # Splits sequence into 2 parts, 3 digits each
-                $NewSequence = $GoProSequence -replace '(\d{3})(\d{3})', '$2-$1'
+                # Splits sequence into 2 parts, 2 digits and 4 digits, and reverses them
+                $NewSequence = $GoProSequence -replace '(\d{2})(\d{4})', '$2-$1'
                 
             }
             $NewFileName = $NewPrefix + $NewSequence + $FileExtension
