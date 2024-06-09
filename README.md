@@ -53,6 +53,8 @@ Rename-GoProFiles -Path "C:\GoProFiles" -Recurse -ShowMe
 
 Retrieves GoPro files from the "C:\\GoProFiles" directory and its subfolders, displays file information, and does not perform any file operations.
 
+---
+
 ```PowerShell
 Rename-GoProFiles -Path "C:\GoProFiles" -DestinationPath "D:\RenamedGoProFiles"
 ```
