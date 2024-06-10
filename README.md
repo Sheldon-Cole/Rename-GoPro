@@ -3,6 +3,8 @@
 This PowerShell script will rename GoPro Hero files from the standard `GX010001.MP4` to `GoPro-0001-01.MP4` so that the videos can be properly sorted, in order, in the OS of the users choice.
 Any LVM and THM files are moved to a separate folder. Currently there is no option to do anything with them, but that will come at a later iteration. 
 
+Tested with GoPro Hero 11 Black
+
 ## GoPro Naming
 
 - `GX`: Video file/encoding designation
