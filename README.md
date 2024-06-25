@@ -8,8 +8,8 @@ Tested with GoPro Hero 11 Black
 ## GoPro Naming
 
 - `GX`: Video file/encoding designation
-- `010`: Chapter number
-- `001`: File number
+- `01`: Chapter number
+- `0001`: Video number
 
 When recording a continuous video, the filenames would be:
 
