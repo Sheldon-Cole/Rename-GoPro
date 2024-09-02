@@ -1,21 +1,24 @@
 # Rename-GoPro
 
-This PowerShell script will rename GoPro Hero files from the standard `GX010001.MP4` to `GoPro-0001-01.MP4` so that can be properly sorted in order, in the OS of the users choice.
+This PowerShell script will rename GoPro Hero files from the standard `GX010001.MP4` to `GoPro-0001-01.MP4` so that the videos can be properly sorted, in order, in the OS of the users choice.
+Any LVM and THM files are moved to a separate folder. Currently there is no option to do anything with them, but that will come at a later iteration. 
+
+Tested with GoPro Hero 11 Black
 
 ## GoPro Naming
 
 - `GX`: Video file/encoding designation
-- `010`: Chapter number
-- `001`: File number
+- `01`: Chapter number
+- `0001`: Video number
 
-So, when recording a continuous video, the filenames would be:
+When recording a continuous video, the filenames would be:
 
 1. `GX010001.MP4`
 2. `GX020001.MP4`
 3. `GX030001.MP4`
 4. etc...
 
-When recording the next video, the filenames would:
+Then recording the next video, the filenames would:
 
 1. `GX010002.MP4`
 2. `GX020002.MP4`
@@ -51,6 +54,8 @@ Rename-GoProFiles -Path "C:\GoProFiles" -Recurse -ShowMe
 ```
 
 Retrieves GoPro files from the "C:\\GoProFiles" directory and its subfolders, displays file information, and does not perform any file operations.
+
+---
 
 ```PowerShell
 Rename-GoProFiles -Path "C:\GoProFiles" -DestinationPath "D:\RenamedGoProFiles"
