@@ -73,10 +73,11 @@ function Get-GoProFiles {
     )
 
     # Get the GoPro file names
-    $GoProFileNames = Get-ChildItem -Path $Path -Include *.MP4, *.JPG, *.JPEG -Recurse:$Recurse | Select-Object -Property Name, Directory, Extension
+    $GoProFileNames = Get-ChildItem -Path $Path -Include *.MP4, *.JPG, *.JPEG, *.GPR -Recurse:$Recurse | Select-Object -Property Name, Directory, Extension
 
     $GoProVideos = @()
     $GoProPictures = @()
+    $RawGoPro = @()
 
     # Get matching GoPro video file names with regex matching
     $GoProFileNames | ForEach-Object {
@@ -87,8 +88,16 @@ function Get-GoProFiles {
                 Extension = $_.Extension
             }
         }
-        if ($_.Name -match 'GOPR\d{4}\.JP.?G') {
+        # if ($_.Name -match 'GOPR\d{4}\.JP.?G') {
+        if ($_.Name -match '.JP.?G') {
             $GoProPictures += [PSCustomObject]@{
+                Name      = $_.Name
+                Directory = $_.Directory
+                Extension = $_.Extension
+            }
+        }
+        if ($_.Name -match '.GPR$') {
+            $RawGoPro += [PSCustomObject]@{
                 Name      = $_.Name
                 Directory = $_.Directory
                 Extension = $_.Extension
@@ -104,8 +113,12 @@ function Get-GoProFiles {
         Write-Warning "No GoPro pictures found in the path: $Path`n"
         $GoProPictures = $false
     }
+    if ($RawGoPro.Count -eq 0) {
+        Write-Warning "No Raw GoPro files found in the path: $Path`n"
+        $RawGoPro = $false
+    }
 
-    return $GoProVideos, $GoProPictures
+    return $GoProVideos, $GoProPictures, $RawGoPro
 }
 
 function Move-GoProLVMTHMFiles {
@@ -201,6 +214,52 @@ function Move-GoProPictures {
         }
     
         Write-Host -ForegroundColor Green "GoPro pictures moved to $NewFileDirectory"
+    }
+    else {
+        Write-Host -ForegroundColor DarkGray "Oops... Something went wrong!"
+    }
+}
+
+function Move-RawGoProFiles {
+    param (
+        [Parameter(Mandatory = $false)]
+        [string]$DestinationPath,
+
+        [Parameter(Mandatory = $true)]
+        [array]$RawGoPro,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [switch]$ShowMe
+    )
+
+    if ($ShowMe) {
+        Write-Host -ForegroundColor Yellow "`nRaw GoPro files found in path: $Path"
+        $RawGoPro | ForEach-Object {
+            Write-Host $_.Name
+        }
+    }
+    elseif (!$ShowMe) {
+        $NewFileDirectory = $DestinationPath + "\" + "Raw GoPro Files"
+    
+        $RawGoPro | ForEach-Object {
+            $File = $_
+            $OldDirectory = $File.Directory
+            $FileDirectory = $OldDirectory.ToString() + "\" + $File.Name.ToString()
+            $NewFilePath = $NewFileDirectory + "\" + $File.ToString()
+    
+            if (-not (Test-Path -Path $NewFileDirectory)) {
+                New-Item -Path $NewFileDirectory -ItemType Directory
+            }
+    
+            Write-Verbose `n$FileDirectory
+            Write-Verbose $NewFilePath`n
+    
+            Move-Item -Path $FileDirectory -Destination $NewFilePath
+        }
+    
+        Write-Host -ForegroundColor Green "Raw GoPro files moved to $NewFileDirectory"
     }
     else {
         Write-Host -ForegroundColor DarkGray "Oops... Something went wrong!"
@@ -320,15 +379,20 @@ if ($Copy -and $Move) {
 
 # First, get the GoPro files. If the -Recurse switch is used, get the GoPro files from all subfolders.
 # This will match any GoPro file name that starts with GX or GG, followed by 6 digits, and ending with .MP4
-# This will match any GoPro picture name that starts with GOPR followed by 4 digits, and ending with .JPG
-$GoProVideos, $GoProPictures = Get-GoProFiles -Path $Path -Recurse:$Recurse
+# This will match any GoPro picture name that ends with .JPG or .JPEG
+$GoProVideos, $GoProPictures, $RawGoPro = Get-GoProFiles -Path $Path -Recurse:$Recurse
 
 # Second, move the unneeded LRV and THM files to a separate folder
 Move-GoProLVMTHMFiles -Path $Path -DestinationPath $DestinationPath -ShowMe:$ShowMe
 
+# Third, move the Raw GoPro files to a separate folder
+if ($RawGoPro -ne $false) {
+    Move-RawGoProFiles -RawGoPro $RawGoPro -Path $Path -DestinationPath $DestinationPath -ShowMe:$ShowMe
+}
 # # Debugging
 # $GoProVideos
 # $GoProPictures
+# $RawGoPro
 
 # Third, move the GoPro pictures to a separate folder
 if ($GoProPictures -ne $false) {
